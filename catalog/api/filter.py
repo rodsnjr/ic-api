@@ -1,4 +1,6 @@
 from typing import List
+from marshmallow import Schema
+from marshmallow import fields as f
 
 
 class ImageFilter:
@@ -123,3 +125,33 @@ class SceneRecognition(ImageFilter):
     @property
     def filters(self) -> List[str]:
         return self.scenes
+
+
+class SceneRecognitionSchema(Schema):
+    uid = f.Str()
+    dependsOn = f.Str()
+    scenes: f.List(f.Str())
+
+
+class ObjectRecognitionSchema(Schema):
+    uid = f.Str()
+    dependsOn = f.Str()
+    objects: f.List(f.Str())
+
+
+class ObjectDetectionSchema(Schema):
+    uid = f.Str()
+    dependsOn = f.Str()
+    objects: f.List(f.Str())
+
+
+class TextDetectionSchema(Schema):
+    uid = f.Str()
+    dependsOn = f.Str()
+    texts: f.List(f.Str())
+
+
+class ColorRecognitionSchema(Schema):
+    uid = f.Str()
+    dependsOn = f.Str()
+    colors: f.List(f.Str())
