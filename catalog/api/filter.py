@@ -1,9 +1,9 @@
 from typing import List
 
-_ABSTRACT = 'Abstract method'
-
 
 class ImageFilter:
+    ABSTRACT = 'Abstract method'
+
     def __init__(self, uid: str = None,
                  depends_on: str = None):
         self.uid = uid
@@ -19,18 +19,18 @@ class ImageFilter:
 
     @property
     def subject(self) -> str:
-        raise NotImplementedError(_ABSTRACT)
+        raise NotImplementedError(ImageFilter.ABSTRACT)
 
     @property
     def filters(self) -> List[str]:
-        raise NotImplementedError(_ABSTRACT)
+        raise NotImplementedError(ImageFilter.ABSTRACT)
 
     def to_dict(self) -> dict:
         return dict(
             uid=self.uid,
-            parent_uid=self.depends_on,
+            depends_on=self.depends_on,
             subject=self.subject,
-            filter=self.filters
+            filters=self.filters
         )
 
 
@@ -74,11 +74,11 @@ class ObjectDetection(ImageFilter):
     SUBJECT = 'OBJECT_DETECTION'
 
     def __init__(self,
-                 labels: List[str],
+                 objects: List[str],
                  uid: str = None,
                  depends_on: str = None):
         super().__init__(uid, depends_on)
-        self.labels: List[str] = labels
+        self.objects: List[str] = objects
 
     @property
     def subject(self) -> str:
@@ -86,17 +86,17 @@ class ObjectDetection(ImageFilter):
 
     @property
     def filters(self) -> List[str]:
-        return self.labels
+        return self.objects
 
 
 class ObjectRecognition(ImageFilter):
     SUBJECT = 'OBJECT_RECOGNITION'
 
-    def __init__(self, labels: List[str],
+    def __init__(self, objects: List[str],
                  uid: str = None,
                  depends_on: str = None):
         super().__init__(uid, depends_on)
-        self.labels: List[str] = labels
+        self.objects: List[str] = objects
 
     @property
     def subject(self) -> str:
@@ -104,17 +104,17 @@ class ObjectRecognition(ImageFilter):
 
     @property
     def filters(self) -> List[str]:
-        return self.labels
+        return self.objects
 
 
 class SceneRecognition(ImageFilter):
     SUBJECT = 'SCENE_RECOGNITION'
 
-    def __init__(self, labels: List[str],
+    def __init__(self, scenes: List[str],
                  uid: str = None,
                  depends_on: str = None):
         super().__init__(uid, depends_on)
-        self.labels: List[str] = labels
+        self.scenes: List[str] = scenes
 
     @property
     def subject(self) -> str:
@@ -122,4 +122,4 @@ class SceneRecognition(ImageFilter):
 
     @property
     def filters(self) -> List[str]:
-        return self.labels
+        return self.scenes

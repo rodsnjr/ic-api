@@ -2,7 +2,7 @@ Feature: Labeling uploaded Images with it's features
 
   Scenario Outline: The user requests a catalog to detect the given objects and it's features in the image
     Given the user has selected a list of <images>
-    And the user selected a list of <objects>
+    And the user selected a list of detection <objects>
     And the user may select an <colors> filter
     When the user creates the object detection filter request
     Then the system should have created catalog
@@ -16,7 +16,7 @@ Feature: Labeling uploaded Images with it's features
 
   Scenario Outline: The user requests a catalog to filter images with the given scenes
     Given the user has selected a list of <images>
-    And the user selected a list of <scenes>
+    And the user selected the <scenes>
     When the user creates the scene filter request
     Then the system should have created catalog
     And the system creates a <number> of catalog events for each image containing the given filters
@@ -28,7 +28,7 @@ Feature: Labeling uploaded Images with it's features
 
   Scenario Outline: The user requests a catalog to filter images with the given objects
     Given the user has selected a list of <images>
-    And the user selected a list of <objects>
+    And the user selected a list of recognition <objects>
     When the user creates the object recognition filter request
     Then the system should have created catalog
     And the system creates a <number> of catalog events for each image containing the given filters

@@ -1,28 +1,21 @@
-from .file import FileClient, S3Client, UploadInfo, DownloadInfo
-from .cache import CacheClient, RedisClient
-from .broker import BrokerClient, KafkaClient
-from .config import FileConfig, CacheConfig, BrokerConfig, Queues
-from .config import (build_broker_config, build_file_config,
-                     build_cache_config, build_queues)
+from os import environ
+from .provider import Provider, ConfigProvider
 
+_CONTEXT = 'APPLICATION_CONTEXT'
+_DEFAULT_CONTEXT = 'mock'
+_APP_CONTEXT = environ.get(_CONTEXT, _DEFAULT_CONTEXT)
 
-file_config = build_file_config()
-cache_config = build_cache_config()
-broker_config = build_broker_config()
-queues = build_queues()
+_config = ConfigProvider(_APP_CONTEXT)
+_provider = Provider(_config)
 
+file_client = _provider.file_client()
+cache_client = _provider.cache_client()
+broker_client = _provider.broker_client()
+queues = _config.queues
 
-if file_config.client == 's3':
-    file_client: FileClient = S3Client(file_config)
-else:
-    raise NotImplementedError(f'FileClient {file_config.client} not Implemented')
-
-if cache_config.client == 'redis':
-    cache_client: CacheClient = RedisClient(cache_config)
-else:
-    raise NotImplementedError(f'CacheClient {cache_config.client} not Implemented')
-
-if broker_config.client == 'kafka':
-    broker_client: BrokerClient = KafkaClient(broker_config)
-else:
-    raise NotImplementedError(f'BrokerClient {broker_config.client} not Implemented')
+__all__ = [
+    file_client,
+    cache_client,
+    broker_client,
+    queues
+]

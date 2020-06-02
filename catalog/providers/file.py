@@ -6,41 +6,43 @@ from .config import FileConfig
 
 
 # Abstract
-class UploadInfo:
-    def __init__(self,
-                 buffer=None,
-                 src_file_name=None,
-                 dst_file_name=None):
-        self.buffer = buffer
-        self.src_file_name = src_file_name
-        self.dst_file_name = dst_file_name
-
-
-class DownloadInfo:
-    def __init__(self,
-                 src_file_name,
-                 dst_file_name=None,
-                 buffer=None):
-        self.src_file_name = src_file_name
-        self.dst_file_name = dst_file_name
-        self.buffer = buffer
-
-
 class FileClient:
     def __init__(self, file_config: FileConfig):
         self.config = file_config
 
-    async def upload_file(self, upload_info: UploadInfo):
+    async def upload_file(self, upload_info):
         raise NotImplementedError('Abstract Method')
 
-    async def upload_bytes(self, upload_info: UploadInfo):
+    async def upload_bytes(self, upload_info):
         raise NotImplementedError('Abstract Method')
 
-    async def download_file(self, download_info: DownloadInfo):
+    async def download_file(self, download_info):
         raise NotImplementedError('Abstract Method')
 
-    async def download_bytes(self, download_info: DownloadInfo):
+    async def download_bytes(self, download_info):
         raise NotImplementedError('Abstract Method')
+
+
+class MockFileClient(FileClient):
+    def __init__(self, config):
+        super(MockFileClient, self).__init__(config)
+        self.uploads = {}
+
+    async def upload_bytes(self, upload_info):
+        self.uploads[upload_info.dst_file_name] = upload_info.buffer
+        return True
+
+    async def upload_file(self, upload_info):
+        pass
+
+    async def download_bytes(self, download_info):
+        return self.uploads[download_info.src_file_name]
+
+    async def download_file(self, download_info):
+        pass
+
+    def clear(self):
+        self.uploads = {}
 
 
 # S3
@@ -65,7 +67,7 @@ class S3Client(FileClient):
             if s3 is not None:
                 s3.close()
 
-    async def upload_file(self, upload_info: UploadInfo):
+    async def upload_file(self, upload_info):
         # Upload the file
         try:
             with self.client() as s3_client:
@@ -77,7 +79,7 @@ class S3Client(FileClient):
             logging.error(e)
             return False
 
-    async def upload_bytes(self, upload_info: UploadInfo):
+    async def upload_bytes(self, upload_info):
         try:
             with self.client() as s3_client:
                 s3_client.put_object(Bucket=self.bucket,
@@ -88,7 +90,7 @@ class S3Client(FileClient):
             logging.error(e)
             return False
 
-    async def download_file(self, download_info: DownloadInfo):
+    async def download_file(self, download_info):
         # Upload the file
         try:
             with self.client() as s3_client:
@@ -100,7 +102,7 @@ class S3Client(FileClient):
             logging.error(e)
             return False
 
-    async def download_bytes(self, download_info: DownloadInfo):
+    async def download_bytes(self, download_info):
         try:
             with self.client() as s3_client:
                 obj = s3_client.get_object(Bucket=self.bucket,

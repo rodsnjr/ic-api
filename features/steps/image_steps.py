@@ -1,8 +1,7 @@
 from behave import given, when, then
 from behave.api.async_step import async_run_until_complete
 from features import fixture
-from catalog.api.image import upload_image, download_image
-from mock import patch
+from catalog.service import download_image, upload_image
 
 
 # Upload
@@ -21,8 +20,6 @@ def select_images(context):
 
 @when('selected the upload option')
 @async_run_until_complete
-@patch(fixture.PATH_IMAGE_FILE_CLIENT, fixture.FILE_CLIENT)
-@patch(fixture.PATH_IMAGE_CACHE_CLIENT, fixture.CACHE_CLIENT)
 async def upload_button(context):
     uploaded_images = []
     for image_bytes in context.selected_images:
@@ -38,25 +35,24 @@ def user_feedback(context):
 @then('the api should upload each image to the filesystem')
 def uploading_images(context):
     for image in context.uploaded_images:
-        assert image.image_key in fixture.FILE_CLIENT.uploads
+        assert image.image_key in fixture.file_client.uploads
 
 
 @then('save the upload information to the cache')
 def cache_information(context):
     for image in context.uploaded_images:
-        assert image.id in fixture.CACHE_CLIENT.objects
+        assert image.id in fixture.cache_client.objects
 
 
 # Download
 @given('the user has a image id')
 def image_id(context):
-    k, image_information = fixture.CACHE_CLIENT.objects.popitem()
+    k, image_information = fixture.cache_client.objects.popitem()
     context.image_id = image_information['image_key']
 
 
 @when('the user calls the system to download the given image')
 @async_run_until_complete
-@patch(fixture.PATH_IMAGE_FILE_CLIENT, fixture.FILE_CLIENT)
 async def start_download(context):
     img_bytes = await download_image(context.image_id)
     context.downloaded_image = img_bytes

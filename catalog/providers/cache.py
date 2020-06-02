@@ -19,6 +19,26 @@ class CacheClient:
         raise NotImplementedError(_ABSTRACT_METHOD)
 
 
+class MockCacheClient(CacheClient):
+    def __init__(self, config):
+        super(MockCacheClient, self).__init__(config)
+        self.objects = {}
+
+    async def add(self, key: str, value: dict):
+        self.objects[key] = value
+        return value
+
+    async def add_many(self, keys: Iterable[str], values: Iterable[dict]):
+        for k, v in zip(keys, values):
+            await self.add(k, v)
+
+    async def get(self, key: str) -> dict:
+        return self.objects[key]
+
+    def clear(self):
+        self.objects = {}
+
+
 class RedisClient(CacheClient):
     def __init__(self, cache_config):
         super().__init__(cache_config)

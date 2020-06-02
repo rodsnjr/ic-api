@@ -1,9 +1,13 @@
 from typing import Iterable, List, Any
-from catalog.providers import broker_client
-from catalog.providers import queues
-from .event import JSonEvent
+from catalog.providers import broker_client, queues
+import json
 
 _PUBLISH_ERROR = 'Failing to publish event'
+
+
+class JSonEvent:
+    def serialize(self) -> bytes:
+        raise NotImplementedError('Abstract Method')
 
 
 class CatalogChild:
@@ -30,14 +34,14 @@ class CatalogChild:
 
 
 class CatalogEvent(JSonEvent):
-    def __init__(self, catalog_id: str,
+    def __init__(self, catalog_uid: str,
                  image_key: str,
                  subject: str,
                  filters: List[str],
                  uid: str,
                  children: List[CatalogChild] = None):
         self.uid: str = uid
-        self.catalog_id: str = catalog_id
+        self.catalog_uid: str = catalog_uid
         self.image_key: str = image_key
         self.subject: str = subject
         self.filters: List[str] = filters
@@ -54,11 +58,11 @@ class CatalogEvent(JSonEvent):
             uid=self.uid,
             children=children,
             image_key=self.image_key,
-            catalog_id=self.catalog_id
+            catalog_uid=self.catalog_uid
         )
 
     def serialize(self) -> bytes:
-        return bytes(str(self.to_dict()).encode('utf-8'))
+        return bytes(json.dumps(self.to_dict()).encode('utf-8'))
 
 
 async def publish_events(catalog_events: Iterable[CatalogEvent]):
@@ -66,13 +70,15 @@ async def publish_events(catalog_events: Iterable[CatalogEvent]):
         for event in catalog_events:
             await publish_event(event)
     except Exception as e:
-        print(_PUBLISH_ERROR)
+        print(e)
         raise Exception(_PUBLISH_ERROR)
 
 
 async def publish_event(catalog_event: CatalogEvent):
     try:
-        await broker_client.publish(queues.catalog, catalog_event)
+        await broker_client.publish(queues.catalog,
+                                    key=catalog_event.catalog_uid,
+                                    event=catalog_event.serialize())
     except Exception as e:
-        print(_PUBLISH_ERROR)
+        print(e)
         raise Exception(_PUBLISH_ERROR)

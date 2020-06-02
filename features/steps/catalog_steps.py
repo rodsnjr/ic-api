@@ -1,9 +1,9 @@
 from behave import given, when, then
 from behave.api.async_step import async_run_until_complete
 from features import fixture as fxt
-from catalog.api.catalog import create_catalog
-from catalog.api.image import Image
-from mock import patch
+from catalog.service import create_catalog
+from catalog.api import Image
+import json
 
 
 # First Scenario
@@ -14,12 +14,12 @@ def selected_images(context, images):
     context.images = images
 
 
-@given('the user selected a list of {objects}')
+@given('the user selected a list of detection {objects}')
 def selected_objects(context, objects):
     objects = [obj.strip() for obj in objects.split(',')]
     context.objects = [dict(
         uid='1',
-        labels=objects
+        objects=objects
     )]
 
 
@@ -36,8 +36,6 @@ def selected_color(context, colors):
 
 @when('the user creates the object detection filter request')
 @async_run_until_complete
-@patch(fxt.PATH_CATALOG_BROKER_CLIENT, fxt.BROKER_CLIENT)
-@patch(fxt.PATH_CATALOG_CACHE_CLIENT, fxt.CACHE_CLIENT)
 async def create_request(context):
     request = dict(
         images=context.images,
@@ -51,7 +49,7 @@ async def create_request(context):
 @async_run_until_complete
 async def created_catalog(context):
     catalog = context.catalog
-    cached_catalog = await fxt.CACHE_CLIENT.get(catalog.uid)
+    cached_catalog = await fxt.cache_client.get(catalog.uid)
 
     assert catalog is not None
     assert cached_catalog is not None
@@ -59,26 +57,36 @@ async def created_catalog(context):
 
 @then('the system creates a {number} of catalog events for each image containing the given filters')
 def created_events(context, number):
-    events = fxt.BROKER_CLIENT.events['catalog']
+    events = fxt.broker_client.get_queue('catalog')
     catalog = context.catalog
-
-    assert len(events) == int(number)
-    for event in events:
-        assert event.catalog_id == catalog.uid
+    # There can be multiple events for the same
+    # catalog_uid (key)
+    for key, events_in_key in events.items():
+        assert key == catalog.uid
+        assert len(events_in_key) == int(number)
+        for event in events_in_key:
+            assert 'catalog_uid' in event
+            assert event['catalog_uid'] == catalog.uid
 
 
 @then('the system creates a children object for the given color')
 def created_children(context):
-    events = fxt.BROKER_CLIENT.events['catalog']
-    for event in events:
-        assert len(event.children) == len(context.colors)
+    _, event = fxt.broker_client.get_any('catalog')
+    assert len(event['children']) == len(context.colors)
 
 
 # Second Scenario
+@given('the user selected the {scenes}')
+def selected_scenes(context, scenes):
+    scenes = [scn.strip() for scn in scenes.split(',')]
+    context.objects = [dict(
+        uid='1',
+        scenes=scenes
+    )]
+
+
 @when('the user creates the scene filter request')
 @async_run_until_complete
-@patch(fxt.PATH_CATALOG_BROKER_CLIENT, fxt.BROKER_CLIENT)
-@patch(fxt.PATH_CATALOG_CACHE_CLIENT, fxt.CACHE_CLIENT)
 async def create_request(context):
     request = dict(
         images=context.images,
@@ -88,10 +96,17 @@ async def create_request(context):
 
 
 # Third Scenario
+@given('the user selected a list of recognition {objects}')
+def selected_objects(context, objects):
+    objects = [obj.strip() for obj in objects.split(',')]
+    context.objects = [dict(
+        uid='1',
+        objects=objects
+    )]
+
+
 @when('the user creates the object recognition filter request')
 @async_run_until_complete
-@patch(fxt.PATH_CATALOG_BROKER_CLIENT, fxt.BROKER_CLIENT)
-@patch(fxt.PATH_CATALOG_CACHE_CLIENT, fxt.CACHE_CLIENT)
 async def create_request(context):
     request = dict(
         images=context.images,

@@ -1,4 +1,4 @@
-from catalog.api import image
+from catalog.service import image
 from quart import Quart
 from quart import request, jsonify
 

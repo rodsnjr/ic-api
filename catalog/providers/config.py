@@ -20,17 +20,25 @@ class Queues:
         self.catalog = catalog
 
 
-def build_file_config() -> FileConfig:
+def build_file_config(context) -> FileConfig:
+    if context == 'mock':
+        return FileConfig(client=context)
     return FileConfig()
 
 
-def build_cache_config() -> CacheConfig:
+def build_cache_config(context) -> CacheConfig:
+    if context == 'mock':
+        return CacheConfig(client=context)
     return CacheConfig()
 
 
-def build_broker_config() -> BrokerConfig:
+def build_broker_config(context) -> BrokerConfig:
+    if context == 'mock':
+        return BrokerConfig(client=context)
     return BrokerConfig()
 
 
-def build_queues() -> Queues:
+def build_queues(context) -> Queues:
+    if context == 'mock':
+        return Queues()
     return Queues()
