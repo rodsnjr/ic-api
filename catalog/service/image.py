@@ -1,5 +1,6 @@
+from typing import Iterable
 from catalog.providers import file_client, cache_client
-from catalog.api import Image
+from catalog.api import Image, ImageNotFoundException
 from catalog.util import generate_uid
 
 
@@ -42,10 +43,31 @@ async def find_image(uid: str) -> Image:
     return Image(**cached_image_dict)
 
 
+# FIXME has to be a batch / more eficient mode
+async def has_images(images: Iterable[Image]) -> bool:
+    return all([await has_image(img) for img in images])
+
+
+async def has_image(image: Image) -> bool:
+    # Avoid going to the file system in case you have the image id
+    if image.uid is not None:
+        if not await cache_client.has(key=image.uid):
+            raise ImageNotFoundException(ImageNotFoundException.NOT_IN_CACHE)
+    else:
+        if not await file_client.has_file(image.image_key):
+            raise ImageNotFoundException(ImageNotFoundException.NOT_IN_BUCKET)
+    return True
+
+
 async def download_image(image_key: str):
-    buffer = await file_client.download_bytes(
-        download_info=DownloadInfo(
-            src_file_name=image_key
-        )
+    dummy_image = Image(
+        uid=None,
+        image_key=image_key
     )
-    return buffer
+    if await has_image(dummy_image):
+        buffer = await file_client.download_bytes(
+            download_info=DownloadInfo(
+                src_file_name=image_key
+            )
+        )
+        return buffer

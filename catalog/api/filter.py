@@ -172,12 +172,12 @@ class ObjectDetectionSchema(Schema):
 
 class TextDetectionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str(data_key='dependsOn')
+    depends_on = f.Str(data_key='dependsOn')
     texts = f.List(f.Str(required=True))
 
     @post_load
     def create(self, data, **kwags):
-        return TextDetection(texts=data['text'],
+        return TextDetection(texts=data['texts'],
                              uid=data.get('uid', generate_uid()),
                              depends_on=data.get('depends_on', None))
 

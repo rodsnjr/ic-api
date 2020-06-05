@@ -9,6 +9,9 @@ class CacheClient:
     def __init__(self, cache_config: CacheConfig):
         self.cache_config = cache_config
 
+    async def has(self, key: str):
+        raise NotImplementedError(_ABSTRACT_METHOD)
+
     async def add(self, key: str, value: dict):
         raise NotImplementedError(_ABSTRACT_METHOD)
 
@@ -37,6 +40,9 @@ class MockCacheClient(CacheClient):
 
     async def get(self, key: str) -> dict:
         return self.objects[key]
+
+    async def has(self, key: str):
+        return key in self.objects
 
     async def get_all(self) -> Iterable[dict]:
         return self.objects

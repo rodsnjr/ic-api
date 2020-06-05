@@ -1,25 +1,27 @@
 from typing import List, Iterable
+from .exception import BusinessException
 from .image import Image, ImageSchema
 from .filter import (ImageFilter, ObjectDetection, ObjectRecognition,
                      SceneRecognition, ColorRecognition, TextDetection)
 from .filter import (SceneRecognitionSchema, ColorRecognitionSchema, ObjectDetectionSchema,
                      ObjectRecognitionSchema, TextDetectionSchema)
-from marshmallow import Schema, post_load, post_dump
+from marshmallow import Schema, post_load
 from marshmallow import fields as f
 from catalog.util import generate_uid
 
 _ERROR_CREATING = 'Error creating Catalog'
 
 
-class CatalogNotValid(Exception):
+class CatalogNotValid(BusinessException):
     NO_PARENT = 'Catalog must have a parent filter'
+
     NO_FILTER = 'Catalog without any filter'
     NO_IMAGE = 'Catalog without any image'
     MULTIPLE_PARENTS = 'Catalog cannot have multiple parents'
 
-    def __init__(self, message, *args: object) -> None:
-        super().__init__(*args)
-        self.message = message
+    @property
+    def error(self):
+        return 'Invalid Catalog'
 
 
 class Catalog:
@@ -69,10 +71,10 @@ class Catalog:
             raise CatalogNotValid(CatalogNotValid.NO_FILTER)
 
         parents = list(self._get_parents())
-        if len(parents) <= 0:
-            raise CatalogNotValid(CatalogNotValid.NO_PARENT)
         if len(parents) > 1:
             raise CatalogNotValid(CatalogNotValid.MULTIPLE_PARENTS)
+        elif len(parents) == 0:
+            raise CatalogNotValid(CatalogNotValid.NO_PARENT)
 
     def _get_parents(self):
         return filter(lambda x: x.parent_node, self.all_filters)
@@ -99,7 +101,7 @@ class Catalog:
 
 class CatalogSchema(Schema):
     uid = f.Str()
-    images = f.List(f.Nested(ImageSchema))
+    images = f.List(f.Nested(ImageSchema), required=True)
     detections = f.List(f.Nested(ObjectDetectionSchema))
     objects = f.List(f.Nested(ObjectRecognitionSchema))
     texts = f.List(f.Nested(TextDetectionSchema))
@@ -109,7 +111,7 @@ class CatalogSchema(Schema):
     @post_load
     def make_catalog(self, data, **kwargs):
         return Catalog(
-            uid=generate_uid(),
+            uid=data.get('uid', generate_uid()),
             images=data['images'],
             detections=data.get('detections', None),
             objects=data.get('objects', None),

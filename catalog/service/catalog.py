@@ -1,11 +1,12 @@
 from typing import Iterable
 from catalog.providers import cache_client
-from catalog.api import (Catalog, ImageFilter)
-from catalog.util import generate_uid
-from .event import CatalogEvent, CatalogChild, publish_events
+from catalog.api import (Catalog, ImageFilter,
+                         CatalogEvent, CatalogChild)
+from .event import publish_events
+from .image import has_images
 
 
-def _catalog_events(catalog: Catalog) -> Iterable[CatalogEvent]:
+def catalog_events(catalog: Catalog) -> Iterable[CatalogEvent]:
     def _build_children(f: ImageFilter):
         return list(map(_build_child, catalog.get_children(f))) if f.parent_node else None
 
@@ -34,18 +35,22 @@ def _catalog_events(catalog: Catalog) -> Iterable[CatalogEvent]:
 
 async def create_catalog(catalog: Catalog):
     catalog.validate()
+    await has_images(catalog.images)
     await cache_client.add(catalog.uid, catalog.to_dict())
-    await publish_events(_catalog_events(catalog))
+    await publish_events(catalog_events(catalog))
     return catalog
 
 
+# TODO
 async def update_catalog(uid: str, catalog: Catalog):
     pass
 
 
+# TODO
 async def delete_catalog(uid: str):
     pass
 
 
+# TODO
 async def find_catalog(uid: str):
     pass

@@ -4,23 +4,28 @@ from botocore.exceptions import ClientError
 import io
 from .config import FileConfig
 
+_ABSTRACT = 'Abstract Method'
+
 
 # Abstract
 class FileClient:
     def __init__(self, file_config: FileConfig):
         self.config = file_config
 
+    async def has_file(self, key):
+        raise NotImplementedError(_ABSTRACT)
+
     async def upload_file(self, upload_info):
-        raise NotImplementedError('Abstract Method')
+        raise NotImplementedError(_ABSTRACT)
 
     async def upload_bytes(self, upload_info):
-        raise NotImplementedError('Abstract Method')
+        raise NotImplementedError(_ABSTRACT)
 
     async def download_file(self, download_info):
-        raise NotImplementedError('Abstract Method')
+        raise NotImplementedError(_ABSTRACT)
 
     async def download_bytes(self, download_info):
-        raise NotImplementedError('Abstract Method')
+        raise NotImplementedError(_ABSTRACT)
 
 
 class MockFileClient(FileClient):
@@ -44,6 +49,9 @@ class MockFileClient(FileClient):
     def clear(self):
         self.uploads = {}
 
+    async def has_file(self, key):
+        return key in self.uploads
+
 
 # S3
 class S3Client(FileClient):
@@ -66,6 +74,18 @@ class S3Client(FileClient):
         finally:
             if s3 is not None:
                 s3.close()
+
+    async def has_file(self, key):
+        # Upload the file
+        try:
+            with self.client() as s3_client:
+                response = s3_client.list_objects(prefix=key,
+                                                  Bucket=self.bucket,
+                                                  MaxKeys=1)
+            return len(response['Contents']) > 0
+        except ClientError as e:
+            logging.error(e)
+            return False
 
     async def upload_file(self, upload_info):
         # Upload the file

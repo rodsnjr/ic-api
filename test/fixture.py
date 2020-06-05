@@ -1,5 +1,5 @@
 from catalog.api import *
-
+from uuid import uuid4
 
 uid = '123'
 colors = ['red', 'blue']
@@ -17,10 +17,25 @@ def abstract_filter():
     )
 
 
+def new_image() -> Image:
+    return Image(
+        image_key='new_image.jpg'
+    )
+
+
 def image() -> Image:
     return Image(
+        uid=uid,
         image_key=image_key,
         upload_url=upload_url
+    )
+
+
+def image_without_uid() -> Image:
+    return Image(
+        uid=None,
+        image_key=image_key,
+        upload_url=None
     )
 
 
@@ -39,11 +54,27 @@ def color_recognition() -> ColorRecognition:
     )
 
 
+def color_recognition_request() -> dict:
+    return dict(
+        colors=colors,
+        uid=uid,
+        dependsOn=uid
+    )
+
+
 def scene_recognition() -> SceneRecognition:
     return SceneRecognition(
         scenes=scenes,
         uid=uid,
         depends_on=uid
+    )
+
+
+def scene_recognition_request() -> dict:
+    return dict(
+        scenes=scenes,
+        uid=uid,
+        dependsOn=uid
     )
 
 
@@ -55,6 +86,14 @@ def text_detection() -> TextDetection:
     )
 
 
+def text_detection_request() -> dict:
+    return dict(
+        texts=texts,
+        uid=uid,
+        dependsOn=uid
+    )
+
+
 def object_detection(_id=uid) -> ObjectDetection:
     return ObjectDetection(
         objects=objects,
@@ -63,11 +102,27 @@ def object_detection(_id=uid) -> ObjectDetection:
     )
 
 
+def object_detection_request(_id=uid) -> dict:
+    return dict(
+        objects=objects,
+        uid=_id,
+        dependsOn=uid
+    )
+
+
 def object_recognition() -> ObjectRecognition:
     return ObjectRecognition(
         objects=objects,
         uid=uid,
         depends_on=uid
+    )
+
+
+def object_recognition_request() -> dict:
+    return dict(
+        objects=objects,
+        uid=uid,
+        dependsOn=uid
     )
 
 
@@ -105,6 +160,27 @@ def multiple_parents_catalog() -> Catalog:
         uid=uid,
         images=[image()],
         scenes=[parent_filter(), parent_filter()]
+    )
+
+
+def catalog_request() -> dict:
+    return dict(
+        uid=uid,
+        images=[dict(
+            imageKey='1234'
+        )],
+        scenes=[dict(
+            scenes=['beach', 'sunset']
+        )]
+    )
+
+
+def catalog_request_with_error() -> dict:
+    return dict(
+        uid=uid,
+        scenes=[dict(
+            scenes=['beach', 'sunset']
+        )]
     )
 
 

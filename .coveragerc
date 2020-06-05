@@ -1,6 +1,4 @@
-[paths]
-omit= */venv/*
-
 [run]
 branch = True
-command_line = -m behave -m pytest
+command_line = -m pytest
+omit= */venv/*

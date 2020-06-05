@@ -1,6 +1,15 @@
 from marshmallow import Schema, post_load
 from marshmallow import fields as f
 from catalog.util import generate_uid
+from .exception import BusinessException
+
+
+class ImageNotFoundException(BusinessException):
+    NOT_IN_BUCKET = 'Image not found in bucket'
+    NOT_IN_CACHE = 'Image not found in Cache'
+
+    def error(self):
+        return "Image not found"
 
 
 class Image:
@@ -34,7 +43,7 @@ class ImageSchema(Schema):
     @post_load
     def create_image(self, data, **kwargs):
         return Image(
-            uid=data.get('uid', generate_uid()),
+            uid=data.get('uid', None),
             image_key=data['image_key'],
             upload_url=data.get('upload_url', None)
         )

@@ -2,11 +2,20 @@ import os
 import base64
 from main import app
 from catalog.service import upload_image
-from catalog.api import Image
-
+from catalog.service.image import UploadInfo
+from catalog.providers import file_client, cache_client
 
 PATH = os.path.dirname(__file__)
 client = app.test_client()
+
+
+async def upload_empty_file(key):
+    await file_client.upload_bytes(UploadInfo(
+        dst_file_name=key
+    ))
+    await cache_client.add(key, dict(
+        image_key=key
+    ))
 
 
 def list_images():

@@ -8,6 +8,8 @@ from features import assertions
 @given('the user has selected a list of {images}')
 def selected_images(context, images):
     images = [image.strip() for image in images.split(',')]
+    for image in images:
+        fxt.upload_empty_file(image)
     context.images = fxt.build_images(images)
 
 

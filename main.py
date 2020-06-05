@@ -3,6 +3,7 @@ from quart import Quart
 from quart import request, jsonify
 from catalog.service import image, catalog
 from catalog.api import Catalog, CatalogNotValid, catalog_schema
+from catalog.api import BusinessException, ImageNotFoundException
 
 app = Quart(__name__)
 
@@ -32,10 +33,16 @@ async def download_image(uid):
         found_image = await image.find_image(uid)
         download = await image.download_image(found_image.image_key)
         return download
+    except ImageNotFoundException as e:
+        print('Image Not Found', e)
+        return jsonify(dict(
+            error=e.error,
+            message=str(e)
+        )), 500
     except Exception as e:
         print('Error downloading image', e)
         return jsonify(dict(
-            error='Error Creating Image',
+            error='Error Downloading Image',
             message=str(e)
         )), 500
 
@@ -43,21 +50,27 @@ async def download_image(uid):
 @app.route('/catalog', methods=['POST'])
 async def create_catalog():
     try:
-        request_json = await request.body
-        catalog_obj: Catalog = catalog_schema.loads(request_json)
+        request_json = await request.get_json()
+        catalog_obj: Catalog = catalog_schema.load(request_json)
         catalog_created = await catalog.create_catalog(catalog_obj)
         catalog_response = catalog_schema.dump(catalog_created)
         return jsonify(catalog_response)
     except ValidationError as e:
         print('Invalid Catalog Request', e)
         return jsonify(dict(
-            error='Catalog not Valid',
+            error='Invalid Request',
             messages=e.messages
         )), 400
     except CatalogNotValid as e:
         print('Invalid Catalog', e)
         return jsonify(dict(
-            error='Catalog Not Valid',
+            error=e.error,
+            message=e.message
+        )), 400
+    except BusinessException as e:
+        print('Business Error', e)
+        return jsonify(dict(
+            error=e.error,
             message=e.message
         )), 400
     except Exception as e:

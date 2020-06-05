@@ -1,5 +1,6 @@
 import pytest
-from catalog.api import CatalogNotValid
+from catalog.api import CatalogNotValid, catalog_schema
+from marshmallow import ValidationError
 from .. import fixture as fxt
 
 
@@ -55,6 +56,7 @@ def test_no_image_catalog():
         no_image_catalog.validate()
     # Then
     assert CatalogNotValid.NO_IMAGE in str(info.value)
+    assert info.value.error is not None
 
 
 def test_multiple_parents():
@@ -67,6 +69,7 @@ def test_multiple_parents():
 
     # Then
     assert CatalogNotValid.MULTIPLE_PARENTS in str(info.value)
+    assert info.value.error is not None
 
 
 def test_catalog_with_children():
@@ -79,3 +82,28 @@ def test_catalog_with_children():
 
     # Then
     assert len(children) > 1
+
+
+def test_catalog_api():
+    # Given
+    catalog_request = fxt.catalog_request()
+
+    # When
+    catalog = catalog_schema.load(catalog_request)
+
+    # Then
+    assert_catalog(catalog)
+
+
+def test_catalog_api_error():
+    # Given
+    catalog_request = fxt.catalog_request_with_error()
+
+    # When
+    with pytest.raises(ValidationError) as info:
+        # When
+        catalog_schema.load(catalog_request)
+
+    # Then
+    assert info.value.messages is not None
+    assert 'images' in info.value.messages

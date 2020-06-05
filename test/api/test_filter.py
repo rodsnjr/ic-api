@@ -1,4 +1,7 @@
 import pytest
+from catalog.api.filter import (ColorRecognitionSchema, ObjectRecognitionSchema,
+                                TextDetectionSchema, ObjectDetectionSchema,
+                                SceneRecognitionSchema)
 from .. import fixture as fxt
 
 
@@ -70,6 +73,20 @@ def test_color_recognition():
                        depends_on=fxt.uid)
 
 
+def test_color_recognition_schema():
+    # Given
+    color_rec_request = fxt.color_recognition_request()
+    schema = ColorRecognitionSchema()
+
+    # When
+    color_rec = schema.load(color_rec_request)
+
+    # Then
+    assert_filter(color_rec, fxt.uid, fxt.colors,
+                  color_rec.SUBJECT,
+                  depends_on=fxt.uid)
+
+
 def test_scene_recognition():
     # Given
     scene_rec = fxt.scene_recognition()
@@ -84,6 +101,20 @@ def test_scene_recognition():
     assert_filter_dict(scene_rec.to_dict(), fxt.uid,
                        fxt.scenes, scene_rec.SUBJECT,
                        depends_on=fxt.uid)
+
+
+def test_scene_recognition_schema():
+    # Given
+    scene_rec_request = fxt.scene_recognition_request()
+    schema = SceneRecognitionSchema()
+
+    # When
+    scene_rec = schema.load(scene_rec_request)
+
+    # Then
+    assert_filter(scene_rec, fxt.uid, fxt.scenes,
+                  scene_rec.SUBJECT,
+                  depends_on=fxt.uid)
 
 
 def test_text_detection():
@@ -102,6 +133,20 @@ def test_text_detection():
                        depends_on=fxt.uid)
 
 
+def test_text_detection_schema():
+    # Given
+    text_det_request = fxt.text_detection_request()
+    schema = TextDetectionSchema()
+
+    # When
+    text_det = schema.load(text_det_request)
+
+    # Then
+    assert_filter(text_det, fxt.uid, fxt.texts,
+                  text_det.SUBJECT,
+                  depends_on=fxt.uid)
+
+
 def test_object_detection():
     # Given
     object_det = fxt.object_detection()
@@ -118,6 +163,21 @@ def test_object_detection():
                        depends_on=fxt.uid)
 
 
+def test_object_detection_schema():
+    # Given
+    object_det_request = fxt.object_detection_request()
+    schema = ObjectDetectionSchema()
+
+    # When
+    object_det = schema.load(object_det_request)
+
+    # Then
+    assert object_det.objects == fxt.objects
+    assert_filter(object_det, fxt.uid, fxt.objects,
+                  object_det.SUBJECT,
+                  depends_on=fxt.uid)
+
+
 def test_object_recognition():
     # Given
     object_rec = fxt.object_recognition()
@@ -132,3 +192,18 @@ def test_object_recognition():
     assert_filter_dict(object_rec.to_dict(), fxt.uid,
                        fxt.objects, object_rec.SUBJECT,
                        depends_on=fxt.uid)
+
+
+def test_object_recognition_schema():
+    # Given
+    object_rec_request = fxt.object_recognition_request()
+    schema = ObjectRecognitionSchema()
+
+    # When
+    object_rec = schema.load(object_rec_request)
+
+    # Then
+    assert object_rec.objects == fxt.objects
+    assert_filter(object_rec, fxt.uid, fxt.objects,
+                  object_rec.SUBJECT,
+                  depends_on=fxt.uid)
