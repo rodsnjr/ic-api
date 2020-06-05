@@ -9,6 +9,6 @@ Feature: Handling Images in the Catalog
     And save the upload information to the cache
 
   Scenario: Downloading Images
-    Given the user has a image id
+    Given the user has an uploaded image
     When the user calls the system to download the given image
     Then the api downloaded the image from the filesystem

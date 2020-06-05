@@ -1,63 +1,62 @@
 from behave import given, when, then
 from behave.api.async_step import async_run_until_complete
-from features import fixture
-from catalog.service import download_image, upload_image
+from features import fixture as fxt
+from features import assertions
 
 
 # Upload
 @given('the user has a folder of images for labeling')
 def images_folder(context):
-    context.images = fixture.list_images()
+    context.images = fxt.list_images()
 
 
 @given('the user selected a bunch of images in the folder')
 def select_images(context):
-    context.selected_images = []
-    for image in context.images:
-        with open(image, 'rb') as img_bytes:
-            context.selected_images.append(img_bytes)
+    context.selected_images = fxt.select_random(context.images)
 
 
 @when('selected the upload option')
 @async_run_until_complete
 async def upload_button(context):
-    uploaded_images = []
-    for image_bytes in context.selected_images:
-        uploaded_images.append(await upload_image(image_bytes))
-    context.uploaded_images = uploaded_images
+    upload_response = await fxt.client.post('/image', json=dict(
+        images=context.selected_images
+    ))
+    context.response = upload_response
+    context.uploaded_images = await upload_response.get_json()
 
 
 @then('return the information to the user')
 def user_feedback(context):
+    assert context.response.status_code == 200
     assert context.uploaded_images is not None
 
 
 @then('the api should upload each image to the filesystem')
 def uploading_images(context):
-    for image in context.uploaded_images:
-        assert image.image_key in fixture.file_client.uploads
+    assertions.has_uploaded(map(lambda x: x['image_key'], context.uploaded_images['images']))
 
 
 @then('save the upload information to the cache')
 def cache_information(context):
-    for image in context.uploaded_images:
-        assert image.id in fixture.cache_client.objects
+    assertions.has_cached(map(lambda x: x['uid'], context.uploaded_images['images']))
 
 
 # Download
-@given('the user has a image id')
-def image_id(context):
-    k, image_information = fixture.cache_client.objects.popitem()
-    context.image_id = image_information['image_key']
+@given('the user has an uploaded image')
+@async_run_until_complete
+async def image_id(context):
+    context.image = await fxt.upload_new_image('car.jpg')
 
 
 @when('the user calls the system to download the given image')
 @async_run_until_complete
 async def start_download(context):
-    img_bytes = await download_image(context.image_id)
-    context.downloaded_image = img_bytes
+    download_response = await fxt.client.get(f'image/{context.image.uid}')
+    context.response = download_response
+    context.downloaded_image = await download_response.get_data()
 
 
 @then('the api downloaded the image from the filesystem')
 def downloads(context):
+    assert context.response.status_code == 200
     assert context.downloaded_image is not None

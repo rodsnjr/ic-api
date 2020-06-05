@@ -1,6 +1,7 @@
 from typing import List
-from marshmallow import Schema
+from marshmallow import Schema, post_load
 from marshmallow import fields as f
+from catalog.util import generate_uid
 
 
 class ImageFilter:
@@ -129,29 +130,65 @@ class SceneRecognition(ImageFilter):
 
 class SceneRecognitionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str()
-    scenes: f.List(f.Str())
+    depends_on = f.Str(data_key='dependsOn')
+    scenes = f.List(f.Str(required=True))
+
+    @post_load
+    def create(self, data, **kwargs):
+        return SceneRecognition(
+            uid=data.get('uid', generate_uid()),
+            scenes=data['scenes'],
+            depends_on=data.get('depends_on', None)
+        )
 
 
 class ObjectRecognitionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str()
-    objects: f.List(f.Str())
+    depends_on = f.Str(data_key='dependsOn')
+    objects = f.List(f.Str(required=True))
+
+    @post_load
+    def create(self, data, **kwargs) -> ObjectRecognition:
+        return ObjectRecognition(
+            objects=data['objects'],
+            uid=data.get('uid', generate_uid()),
+            depends_on=data.get('depends_on', None)
+        )
 
 
 class ObjectDetectionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str()
-    objects: f.List(f.Str())
+    depends_on = f.Str(data_key='dependsOn')
+    objects = f.List(f.Str(required=True))
+
+    @post_load
+    def create(self, data, **kwargs) -> ObjectDetection:
+        return ObjectDetection(
+            objects=data['objects'],
+            uid=data.get('uid', generate_uid()),
+            depends_on=data.get('depends_on', None)
+        )
 
 
 class TextDetectionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str()
-    texts: f.List(f.Str())
+    dependsOn = f.Str(data_key='dependsOn')
+    texts = f.List(f.Str(required=True))
+
+    @post_load
+    def create(self, data, **kwags):
+        return TextDetection(texts=data['text'],
+                             uid=data.get('uid', generate_uid()),
+                             depends_on=data.get('depends_on', None))
 
 
 class ColorRecognitionSchema(Schema):
     uid = f.Str()
-    dependsOn = f.Str()
-    colors: f.List(f.Str())
+    depends_on = f.Str(data_key='dependsOn')
+    colors = f.List(f.Str(required=True))
+
+    @post_load
+    def create(self, data, **kwargs):
+        return ColorRecognition(colors=data['colors'],
+                                uid=data.get('uid', generate_uid()),
+                                depends_on=data.get('depends_on', None))

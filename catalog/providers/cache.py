@@ -18,6 +18,9 @@ class CacheClient:
     async def get(self, key: str) -> dict:
         raise NotImplementedError(_ABSTRACT_METHOD)
 
+    async def get_all(self) -> Iterable[dict]:
+        raise NotImplementedError(_ABSTRACT_METHOD)
+
 
 class MockCacheClient(CacheClient):
     def __init__(self, config):
@@ -34,6 +37,9 @@ class MockCacheClient(CacheClient):
 
     async def get(self, key: str) -> dict:
         return self.objects[key]
+
+    async def get_all(self) -> Iterable[dict]:
+        return self.objects
 
     def clear(self):
         self.objects = {}
@@ -81,3 +87,7 @@ class RedisClient(CacheClient):
         except Exception as e:
             print(e)
             raise Exception('Impossible to get from cache')
+
+    async def get_all(self) -> Iterable[dict]:
+        pass
+
