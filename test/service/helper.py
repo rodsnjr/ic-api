@@ -1,9 +1,12 @@
 from catalog.providers import file_client, cache_client, broker_client
 from catalog.service.image import UploadInfo
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 
-MOCK_BROKER_PUBLISH = patch('catalog.service.event.broker_client')
+def mock_broker_publish():
+    mock = patch('catalog.service.event.broker_client')
+    mock.publish = Mock(side_effect=Exception)
+    return mock
 
 
 def clear():
