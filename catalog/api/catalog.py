@@ -7,7 +7,7 @@ from .filter import (SceneRecognitionSchema, ColorRecognitionSchema, ObjectDetec
                      ObjectRecognitionSchema, TextDetectionSchema)
 from marshmallow import Schema, post_load
 from marshmallow import fields as f
-from catalog.util import generate_uid
+from catalog.util import generate_uid, clean_null_terms
 
 _ERROR_CREATING = 'Error creating Catalog'
 
@@ -88,7 +88,7 @@ class Catalog:
         return children_of
 
     def to_dict(self) -> dict:
-        return dict(
+        return clean_null_terms(dict(
             uid=self.uid,
             images=self._to_dict_list(self.images),
             detections=self._to_dict_list(self.detections),
@@ -96,7 +96,7 @@ class Catalog:
             texts=self._to_dict_list(self.texts),
             scenes=self._to_dict_list(self.scenes),
             colors=self._to_dict_list(self.colors)
-        )
+        ))
 
 
 class CatalogSchema(Schema):

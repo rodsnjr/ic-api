@@ -20,9 +20,10 @@ def assert_filter(filter_obj, uid, filters, subject, depends_on=None):
 
 def assert_filter_dict(filter_dict, uid, filters, subject, depends_on=None):
     assert filter_dict['uid'] == uid, f'dict should have uid[{uid}]'
-    assert filter_dict['depends_on'] == depends_on, f'dict should have depends_on [{depends_on}]'
     assert filter_dict['filters'] == filters, f'dict filters should have [{filters}]'
     assert filter_dict['subject'] == subject, f'dict subject should have [{subject}]'
+    if depends_on is not None:
+        assert filter_dict['depends_on'] == depends_on, f'dict should have depends_on [{depends_on}]'
 
 
 def test_abstract_filter():

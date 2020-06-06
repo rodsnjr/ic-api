@@ -8,6 +8,53 @@ texts = ['Text', 'Random']
 objects = ['Car', 'Chair']
 image_key = 'one_key'
 upload_url = 'http://upload.url'
+subject = 'OBJECT_DETECTION'
+filters = ['CAR']
+
+
+def catalog_event_exception():
+    return CatalogEventException(CatalogEventException.PUBLISH_ERROR)
+
+
+def json_event():
+    return JsonEvent()
+
+
+def catalog_event():
+    return CatalogEvent(
+        uid=uid,
+        image_key=image_key,
+        subject=subject,
+        filters=filters,
+        catalog_uid=uid)
+
+
+def catalog_child():
+    return CatalogChild(
+        uid=uid,
+        subject=subject,
+        filters=filters,
+        children=[CatalogChild(
+            uid=uid,
+            subject=subject,
+            filters=filters
+        )]
+    )
+
+
+def catalog_event_with_children():
+    return CatalogEvent(
+        uid=uid,
+        image_key=image_key,
+        subject=subject,
+        filters=filters,
+        catalog_uid=uid,
+        children=[CatalogChild(
+            uid=uid,
+            subject=subject,
+            filters=filters
+        )]
+    )
 
 
 def abstract_filter():

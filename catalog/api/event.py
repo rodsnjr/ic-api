@@ -1,19 +1,23 @@
 from typing import Iterable, List, Any
-from .exception import BusinessException
+from catalog.util import clean_null_terms
 import json
+from .exception import BusinessException
 
 
 class CatalogEventException(BusinessException):
     PUBLISH_ERROR = 'Failing to publish event'
+    ERROR = "Catalog Event Error"
 
     @property
     def error(self):
-        return "Catalog Event Error"
+        return self.ERROR
 
 
-class JSonEvent:
+class JsonEvent:
+    ABSTRACT = 'Abstract Method'
+
     def serialize(self) -> bytes:
-        raise NotImplementedError('Abstract Method')
+        raise NotImplementedError(self.ABSTRACT)
 
 
 class CatalogChild:
@@ -31,15 +35,15 @@ class CatalogChild:
             children = [c.to_dict() for c in self.children]
         else:
             children = None
-        return dict(
+        return clean_null_terms(dict(
             subject=self.subject,
             filters=self.filters,
             uid=self.uid,
             children=children
-        )
+        ))
 
 
-class CatalogEvent(JSonEvent):
+class CatalogEvent(JsonEvent):
     def __init__(self, catalog_uid: str,
                  image_key: str,
                  subject: str,
@@ -58,14 +62,14 @@ class CatalogEvent(JSonEvent):
             children = [c.to_dict() for c in self.children]
         else:
             children = None
-        return dict(
+        return clean_null_terms(dict(
             subject=self.subject,
             filters=self.filters,
             uid=self.uid,
             children=children,
             image_key=self.image_key,
             catalog_uid=self.catalog_uid
-        )
+        ))
 
     def serialize(self) -> bytes:
         return bytes(json.dumps(self.to_dict()).encode('utf-8'))

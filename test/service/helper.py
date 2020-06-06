@@ -1,10 +1,15 @@
 from catalog.providers import file_client, cache_client, broker_client
 from catalog.service.image import UploadInfo
+from unittest.mock import patch
+
+
+MOCK_BROKER_PUBLISH = patch('catalog.service.event.broker_client')
 
 
 def clear():
     file_client.clear()
     cache_client.clear()
+    broker_client.clear()
 
 
 async def upload_dummy(key, cache_id):

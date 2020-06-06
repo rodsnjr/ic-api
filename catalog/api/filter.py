@@ -1,7 +1,7 @@
 from typing import List
 from marshmallow import Schema, post_load
 from marshmallow import fields as f
-from catalog.util import generate_uid
+from catalog.util import generate_uid, clean_null_terms
 
 
 class ImageFilter:
@@ -29,12 +29,12 @@ class ImageFilter:
         raise NotImplementedError(ImageFilter.ABSTRACT)
 
     def to_dict(self) -> dict:
-        return dict(
+        return clean_null_terms(dict(
             uid=self.uid,
             depends_on=self.depends_on,
             subject=self.subject,
             filters=self.filters
-        )
+        ))
 
 
 class ColorRecognition(ImageFilter):

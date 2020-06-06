@@ -1,6 +1,6 @@
 from marshmallow import Schema, post_load
 from marshmallow import fields as f
-from catalog.util import generate_uid
+from catalog.util import generate_uid, clean_null_terms
 from .exception import BusinessException
 
 
@@ -21,11 +21,11 @@ class Image:
         self.upload_url = upload_url
 
     def to_dict(self):
-        return dict(
+        return clean_null_terms(dict(
             uid=self.uid,
             upload_url=self.upload_url,
             image_key=self.image_key
-        )
+        ))
 
     def __str__(self):
         return f"""
