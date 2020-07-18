@@ -10,6 +10,23 @@ app = Quart(__name__)
 
 @app.route('/image', methods=['POST'])
 async def create_image():
+    """
+        upload a new image
+        ---
+        tags:
+          - image
+        definitions:
+          - schema:
+              images: Base64 Encoded Images
+        parameters:
+          - in: body
+            name: body
+            schema:
+              images: Base64 Encoded Images
+        responses:
+          200:
+            description: Image object uploaded
+    """
     try:
         request_json = await request.get_json()
         uploads = []

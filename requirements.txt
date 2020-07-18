@@ -1,0 +1,5 @@
+quart
+marshmallow
+aioboto3
+aiokafka
+config-client
